@@ -10,7 +10,7 @@
   typedef __eglMustCastToProperFunctionPointerType (GLAD_API_PTR *PFNEGLGETPROCADDRESSPROC)(const char *name);
 #endif
   extern __eglMustCastToProperFunctionPointerType emscripten_GetProcAddress(const char *name);
-#elif GLAD_GLES2_USE_SYSTEM_EGL
+#elif GLAD_GLES2_USE_SYSTEM_EGL || GLAD_PLATFORM_NX
   #include <EGL/egl.h>
   typedef __eglMustCastToProperFunctionPointerType (GLAD_API_PTR *PFNEGLGETPROCADDRESSPROC)(const char *name);
 #else
@@ -45,8 +45,10 @@ static GLADapiproc glad_gles2_get_proc(void *vuserptr, const char* name) {
 static void* {{ loader_handle }} = NULL;
 {% endif %}
 
+
 static void* glad_gles2_dlopen_handle({{ template_utils.context_arg(def='void') }}) {
 #if GLAD_PLATFORM_EMSCRIPTEN
+#elif GLAD_PLATFORM_NX
 #elif GLAD_PLATFORM_APPLE
     static const char *NAMES[] = {"libGLESv2.dylib"};
 #elif GLAD_PLATFORM_WIN32
@@ -55,7 +57,7 @@ static void* glad_gles2_dlopen_handle({{ template_utils.context_arg(def='void') 
     static const char *NAMES[] = {"libGLESv2.so.2", "libGLESv2.so"};
 #endif
 
-#if GLAD_PLATFORM_EMSCRIPTEN
+#if GLAD_PLATFORM_EMSCRIPTEN || GLAD_PLATFORM_NX
     GLAD_UNUSED(glad_get_dlopen_handle);
     return NULL;
 #else
@@ -92,6 +94,12 @@ int gladLoaderLoadGLES2{{ 'Context' if options.mx }}({{ template_utils.context_a
     GLAD_UNUSED(glad_gles2_dlopen_handle);
     GLAD_UNUSED(glad_gles2_build_userptr);
     userptr.get_proc_address_ptr = emscripten_GetProcAddress;
+    version = gladLoadGLES2{{ 'Context' if options.mx }}UserPtr({{ 'context, ' if options.mx }}glad_gles2_get_proc, &userptr);
+#elif GLAD_PLATFORM_NX
+    GLAD_UNUSED(handle);
+    GLAD_UNUSED(did_load);
+    GLAD_UNUSED(glad_gles2_dlopen_handle);
+    userptr.get_proc_address_ptr = eglGetProcAddress;
     version = gladLoadGLES2{{ 'Context' if options.mx }}UserPtr({{ 'context, ' if options.mx }}glad_gles2_get_proc, &userptr);
 #else
     if (eglGetProcAddress == NULL) {

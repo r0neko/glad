@@ -48,6 +48,14 @@
   #endif
 #endif
 
+#ifndef GLAD_PLATFORM_NX
+  #ifdef __SWITCH__
+    #define GLAD_PLATFORM_NX 1
+  #else
+    #define GLAD_PLATFORM_NX 0
+  #endif
+#endif
+
 #ifdef __GNUC__
   #define GLAD_GNUC_EXTENSION __extension__
 #else

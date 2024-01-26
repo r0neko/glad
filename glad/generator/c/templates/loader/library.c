@@ -4,7 +4,10 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#if GLAD_PLATFORM_WIN32
+// Nintendo Switch (NX) does not feature dynamic library loading!
+
+#if GLAD_PLATFORM_NX
+#elif GLAD_PLATFORM_WIN32
 #include <windows.h>
 #else
 #include <dlfcn.h>
@@ -12,6 +15,7 @@
 
 
 static void* glad_get_dlopen_handle(const char *lib_names[], int length) {
+#if !GLAD_PLATFORM_NX
     void *handle = NULL;
     int i;
 
@@ -37,11 +41,12 @@ static void* glad_get_dlopen_handle(const char *lib_names[], int length) {
             return handle;
         }
     }
-
+#endif
     return NULL;
 }
 
 static void glad_close_dlopen_handle(void* handle) {
+#if !GLAD_PLATFORM_NX
     if (handle != NULL) {
 #if GLAD_PLATFORM_WIN32
         FreeLibrary((HMODULE) handle);
@@ -49,9 +54,13 @@ static void glad_close_dlopen_handle(void* handle) {
         dlclose(handle);
 #endif
     }
+#endif
 }
 
 static GLADapiproc glad_dlsym_handle(void* handle, const char *name) {
+#if GLAD_PLATFORM_NX
+    return NULL;
+#else
     if (handle == NULL) {
         return NULL;
     }
@@ -60,6 +69,7 @@ static GLADapiproc glad_dlsym_handle(void* handle, const char *name) {
     return (GLADapiproc) GetProcAddress((HMODULE) handle, name);
 #else
     return GLAD_GNUC_EXTENSION (GLADapiproc) dlsym(handle, name);
+#endif
 #endif
 }
 

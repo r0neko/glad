@@ -44,15 +44,15 @@ cmake_minimum_required(VERSION 3.12)
 project(glad C)
 
 set(
-    GLAD_CMAKE_DIR 
-    "${CMAKE_CURRENT_LIST_DIR}" 
-    CACHE STRING 
+    GLAD_CMAKE_DIR
+    "${CMAKE_CURRENT_LIST_DIR}"
+    CACHE STRING
     "Directory containing glad generator CMakeLists.txt. Must be absolute."
     )
 set(
-    GLAD_SOURCES_DIR 
-    "${GLAD_CMAKE_DIR}/../"   
-    CACHE STRING 
+    GLAD_SOURCES_DIR
+    "${GLAD_CMAKE_DIR}/../"
+    CACHE STRING
     "Directory containing glad sources (python modules), used as working directory. Must be absolute."
     )
 mark_as_advanced(GLAD_CMAKE_DIR)
@@ -200,9 +200,9 @@ function(glad_add_library TARGET)
     message(STATUS "Glad Library \'${TARGET}\'")
 
     find_package(Python COMPONENTS Interpreter REQUIRED)
-    
+
     cmake_parse_arguments(GG "MERGE;QUIET;REPRODUCIBLE;STATIC;SHARED;MODULE;INTERFACE;EXCLUDE_FROM_ALL" "LOCATION;LANGUAGE" "API;EXTENSIONS" ${ARGN})
-    
+
     if(NOT GG_LOCATION)
         set(GG_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/gladsources/${TARGET}")
     endif()
@@ -298,11 +298,14 @@ function(glad_add_library TARGET)
             "${GLAD_DIR}/include"
         )
 
+    # add check for Nintendo Switch (NX) because the OS does not feature Dynamic Loading
+    if(NOT NINTENDO_SWITCH)
     target_link_libraries("${TARGET}"
         PUBLIC
             ${CMAKE_DL_LIBS}
         )
-        
+    endif()
+
     if(GG_SHARED)
         target_compile_definitions("${TARGET}" PUBLIC GLAD_API_CALL_EXPORT)
         set_target_properties("${TARGET}"
